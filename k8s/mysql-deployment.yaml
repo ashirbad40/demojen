@@ -14,6 +14,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
 spec:
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:
@@ -24,7 +25,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-
 spec:
   replicas: 1
   selector:
@@ -42,12 +42,20 @@ spec:
           name: mysql
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: 9178918183
+              value: "9178918183"
             - name: MYSQL_DATABASE
               value: db_2
           ports:
             - containerPort: 3306
-
+          readinessProbe:
+            exec:
+              command:
+                - "mysqladmin"
+                - "ping"
+                - "-h"
+                - "127.0.0.1"
+            initialDelaySeconds: 20
+            periodSeconds: 10
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
